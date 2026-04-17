@@ -21,11 +21,26 @@ workflows:
           cd ..
       - name: Fix video_compress namespace
         script: |
-          PLUGIN_DIR="$HOME/.pub-cache/hosted/pub.dev/video_compress: ^3.1.4/android"
-          if [ -f "$PLUGIN_DIR/build.gradle" ]; then
-            if ! grep -q "namespace" "$PLUGIN_DIR/build.gradle"; then
-              sed -i '/android {/a \    namespace = "com.otaliastudios.compress"' "$PLUGIN_DIR/build.gradle"
-            fi
+          PLUGIN_DIR="$HOME/.pub-cache/hosted/pub.dev/video_compress-3.1.4/android"
+          if [ -d "$PLUGIN_DIR" ]; then
+            cat > "$PLUGIN_DIR/build.gradle" << 'EOF'
+    android {
+        namespace "com.otaliastudios.compress"
+        compileSdk 34
+
+        defaultConfig {
+            minSdk 21
+            testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+        }
+    }
+
+    dependencies {
+        implementation 'androidx.annotation:annotation:1.2.0'
+    }
+    EOF
+            echo "Patched video_compress build.gradle with namespace."
+          else
+            echo "Plugin directory not found at $PLUGIN_DIR"
           fi
       - name: Get Flutter packages
         script: flutter packages pub get
