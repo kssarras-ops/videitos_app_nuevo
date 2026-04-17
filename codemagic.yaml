@@ -3,51 +3,37 @@ workflows:
     name: Android Release Workflow
     max_build_duration: 90
     environment:
-      flutter: 3.24.3
+      flutter: 3.24.3                     # Versión estable de Flutter
       vars:
         EMAIL_RECIPIENT: "kssarras@gmail.com"
       android_signing:
-        - videitos_keystore
+        - videitos_keystore               # Debe coincidir con el nombre en Code signing
     scripts:
+      # 1. Asegurar compatibilidad con AGP 9+ (evita el error "Cannot add task 'generateLockfiles'")
       - name: Ensure AGP compatibility
         script: |
           if ! grep -q "android.newDsl=false" android/gradle.properties; then
             echo "android.newDsl=false" >> android/gradle.properties
           fi
+      # 2. Limpiar caché de Gradle (evita conflictos)
       - name: Clean Gradle cache
         script: |
           cd android
           ./gradlew clean
           cd ..
+      # 3. Obtener dependencias de Flutter
       - name: Get Flutter packages
         script: flutter packages pub get
-      - name: Patch video_compress namespace
-        script: |
-          PLUGIN_DIR=$(find "$HOME/.pub-cache/hosted" -type d -name "video_compress-*" | head -n 1)
-          if [ -n "$PLUGIN_DIR" ]; then
-            BUILD_FILE="$PLUGIN_DIR/android/build.gradle"
-            if [ -f "$BUILD_FILE" ]; then
-              if ! grep -q "namespace" "$BUILD_FILE"; then
-                sed -i '/android {/a \    namespace "com.otaliastudios.compress"' "$BUILD_FILE"
-                echo "Patched $BUILD_FILE"
-              else
-                echo "Namespace already present."
-              fi
-            else
-              echo "build.gradle not found at $BUILD_FILE"
-            fi
-          else
-            echo "video_compress plugin directory not found."
-          fi
+      # 4. Construir el Android App Bundle (AAB) firmado
       - name: Build AAB with Flutter
         script: |
           flutter build appbundle --release
     artifacts:
-      - build/**/outputs/**/*.aab
+      - build/**/outputs/**/*.aab          # Recoge el AAB generado
     publishing:
       email:
         recipients:
-          - kssarras@gmail.com
+          - kssarras@gmail.com             # Notificaciones al correo
         notify:
           success: true
           failure: true
