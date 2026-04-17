@@ -1,0 +1,35 @@
+workflows:
+  android-release-workflow:
+    name: Android Release Workflow
+    max_build_duration: 90
+    environment:
+      flutter: 3.24.3
+      vars:
+        EMAIL_RECIPIENT: "kssarras@gmail.com"
+      android_signing:
+        - videitos_keystore
+    scripts:
+      - name: Ensure AGP compatibility
+        script: |
+          if ! grep -q "android.newDsl=false" android/gradle.properties; then
+            echo "android.newDsl=false" >> android/gradle.properties
+          fi
+      - name: Clean Gradle cache
+        script: |
+          cd android
+          ./gradlew clean
+          cd ..
+      - name: Get Flutter packages
+        script: flutter packages pub get
+      - name: Build AAB with Flutter
+        script: |
+          flutter build appbundle --release
+    artifacts:
+      - build/**/outputs/**/*.aab
+    publishing:
+      email:
+        recipients:
+          - kssarras@gmail.com
+        notify:
+          success: true
+          failure: true
