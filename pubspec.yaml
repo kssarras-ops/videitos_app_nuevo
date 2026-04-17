@@ -1,10 +1,6 @@
 name: videitos_app
 description: App de videos cortos - Videitos
 publish_to: 'none'
-
-# Versión de la app: formato "major.minor.patch+build"
-# - versionName: 4.0.4 (visible al usuario)
-# - versionCode: 5 (interno, debe incrementarse en cada subida a Google Play)
 version: 4.0.4+5
 
 environment:
@@ -14,40 +10,26 @@ dependencies:
   flutter:
     sdk: flutter
 
-  # --- BACKEND & AUTENTICACIÓN ---
-  pocketbase: ^0.23.2          # SDK oficial de PocketBase
-  http: ^1.2.0                 # Cliente HTTP para peticiones personalizadas
-  shared_preferences: ^2.2.0   # Persistencia local (tokens, preferencias)
+  pocketbase: ^0.23.2
+  http: ^1.2.0
+  shared_preferences: ^2.2.0
+  provider: ^6.1.0
+  video_player: ^2.8.0
+  chewie: ^1.7.0
+  image_picker: ^1.0.5
+  file_picker: ^8.0.0+1
+  cupertino_icons: ^1.0.6
+  cached_network_image: ^3.3.0
 
-  # --- MANEJO DE ESTADO ---
-  provider: ^6.1.0             # Provider para estado reactivo
-
-  # --- REPRODUCTOR DE VIDEO ---
-  video_player: ^2.8.0         # Reproductor de video base
-  chewie: ^1.7.0               # Controles y UI mejorada para video
-
-  # --- COMPRESIÓN DE VIDEO ---
-  video_compress: 3.1.2        # Compresión eficiente (versión fija estable)
-
-  # --- SELECCIÓN DE ARCHIVOS ---
-  image_picker: ^1.0.5         # Selección de videos desde galería/cámara
-  file_picker: ^8.0.0+1        # Selector de archivos multiplataforma
-
-  # --- UI & ICONOS ---
-  cupertino_icons: ^1.0.6      # Iconos estilo iOS
-  cached_network_image: ^3.3.0 # Caché de imágenes y thumbnails
+  # Versión estable que no causa problemas con AGP 8+
+  package_info_plus: ^7.0.0
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
-  flutter_lints: ^3.0.0        # Reglas de linting para mantener código limpio
+  flutter_lints: ^3.0.0
 
 flutter:
   uses-material-design: true
-
-  # Para agregar assets (imágenes, fuentes, etc.), descomenta la siguiente línea
-  # y coloca tus archivos en la carpeta 'assets/'.
-  # assets:
-  #   - assets/logo.png
 
 
