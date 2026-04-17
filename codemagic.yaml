@@ -21,6 +21,24 @@ workflows:
           cd ..
       - name: Get Flutter packages
         script: flutter packages pub get
+      - name: Patch video_compress namespace
+        script: |
+          PLUGIN_DIR=$(find "$HOME/.pub-cache/hosted" -type d -name "video_compress-*" | head -n 1)
+          if [ -n "$PLUGIN_DIR" ]; then
+            BUILD_FILE="$PLUGIN_DIR/android/build.gradle"
+            if [ -f "$BUILD_FILE" ]; then
+              if ! grep -q "namespace" "$BUILD_FILE"; then
+                sed -i '/android {/a \    namespace "com.otaliastudios.compress"' "$BUILD_FILE"
+                echo "Patched $BUILD_FILE"
+              else
+                echo "Namespace already present."
+              fi
+            else
+              echo "build.gradle not found at $BUILD_FILE"
+            fi
+          else
+            echo "video_compress plugin directory not found."
+          fi
       - name: Build AAB with Flutter
         script: |
           flutter build appbundle --release
