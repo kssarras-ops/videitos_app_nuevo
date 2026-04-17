@@ -1,0 +1,33 @@
+name: videitos_app
+description: App de videos cortos - Videitos
+publish_to: 'none'
+version: 1.0.0+1
+
+environment:
+  sdk: ">=3.0.0 <4.0.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+  pocketbase: ^0.23.2
+  http: ^1.2.0
+  provider: ^6.1.0
+  shared_preferences: ^2.2.0
+  video_player: ^2.8.0
+  chewie: ^1.7.0
+  image_picker: ^1.0.5
+  file_picker: ^8.0.0+1
+  cross_file: ^0.3.4          # <- cambiado
+  package_info_plus: ^7.0.0
+  cupertino_icons: ^1.0.6
+  cached_network_image: ^3.3.0
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^3.0.0
+
+flutter:
+  uses-material-design: true
+
