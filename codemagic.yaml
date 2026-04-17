@@ -21,7 +21,7 @@ workflows:
           cd ..
       - name: Fix video_compress namespace
         script: |
-          PLUGIN_DIR="$HOME/.pub-cache/hosted/pub.dev/video_compress-3.1.2/android"
+          PLUGIN_DIR="$HOME/.pub-cache/hosted/pub.dev/video_compress: ^3.1.4/android"
           if [ -f "$PLUGIN_DIR/build.gradle" ]; then
             if ! grep -q "namespace" "$PLUGIN_DIR/build.gradle"; then
               sed -i '/android {/a \    namespace = "com.otaliastudios.compress"' "$PLUGIN_DIR/build.gradle"
