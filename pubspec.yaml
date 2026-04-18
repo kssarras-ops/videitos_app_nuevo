@@ -1,7 +1,7 @@
 name: videitos_app
 description: App de videos cortos - Videitos
 publish_to: 'none'
-version: 4.0.5+7
+version: 4.0.5+1002
 
 environment:
   sdk: ">=3.0.0 <4.0.0"
