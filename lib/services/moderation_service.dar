@@ -1,0 +1,317 @@
+// lib/services/moderation_service.dart
+// ═══════════════════════════════════════════════════════════════════════════
+// MODERATION SERVICE — Videitos App
+// ═══════════════════════════════════════════════════════════════════════════
+//
+// Servicio centralizado de moderación para cumplir con las políticas de UGC
+// (User Generated Content) de Google Play y App Store.
+//
+// Funciones:
+//   - Reportar un video con motivo.
+//   - Bloquear un usuario (ocultar sus videos/comentarios).
+//   - Desbloquear un usuario.
+//   - Verificar si un usuario está bloqueado.
+//   - Obtener la lista de usuarios bloqueados.
+//
+// Autor: Equipo de Ingeniería Videitos
+// Última actualización: 2026-10-09
+// ═══════════════════════════════════════════════════════════════════════════
+
+import 'dart:async';
+
+import 'package:flutter/foundation.dart';
+import 'package:pocketbase/pocketbase.dart';
+
+import 'api_service.dart';
+
+/// Motivos de reporte disponibles.
+enum ReportReason {
+  spam,
+  harassment,
+  inappropriate,
+  other,
+}
+
+extension ReportReasonExtension on ReportReason {
+  String get code {
+    switch (this) {
+      case ReportReason.spam:
+        return 'spam';
+      case ReportReason.harassment:
+        return 'harassment';
+      case ReportReason.inappropriate:
+        return 'inappropriate';
+      case ReportReason.other:
+        return 'other';
+    }
+  }
+}
+
+/// ═══════════════════════════════════════════════════════════════════════════
+// EXCEPCIÓN
+// ═══════════════════════════════════════════════════════════════════════════
+
+class ModerationException implements Exception {
+  final String message;
+  final int? statusCode;
+
+  ModerationException(this.message, {this.statusCode});
+
+  @override
+  String toString() => message;
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// SERVICIO
+// ═══════════════════════════════════════════════════════════════════════════
+
+class ModerationService {
+  // ─────────────────────────────────────────────────────────────────────────
+  // SINGLETON
+  // ─────────────────────────────────────────────────────────────────────────
+
+  static final ModerationService _instance = ModerationService._internal();
+  factory ModerationService() => _instance;
+  ModerationService._internal();
+
+  // ─────────────────────────────────────────────────────────────────────────
+  // CONSTANTES
+  // ─────────────────────────────────────────────────────────────────────────
+
+  static const String _reportsCollection = 'reports';
+  static const String _blocksCollection = 'blocks';
+
+  // ─────────────────────────────────────────────────────────────────────────
+  // GETTERS
+  // ─────────────────────────────────────────────────────────────────────────
+
+  PocketBase get pb => ApiService.instance.pb;
+  String? get currentUserId => ApiService.instance.currentUser?.id;
+  bool get isAuthenticated => ApiService.instance.isLoggedIn;
+
+  // ─────────────────────────────────────────────────────────────────────────
+  // LOGS
+  // ─────────────────────────────────────────────────────────────────────────
+
+  void _log(String tag, String message) {
+    if (kDebugMode) {
+      debugPrint('🛡️  [ModerationService][$tag] $message');
+    }
+  }
+
+  void _logSuccess(String tag, String message) {
+    if (kDebugMode) {
+      debugPrint('✅ [ModerationService][$tag] $message');
+    }
+  }
+
+  void _logWarning(String tag, String message) {
+    if (kDebugMode) {
+      debugPrint('⚠️  [ModerationService][$tag] $message');
+    }
+  }
+
+  void _logError(String tag, String message, [Object? error, StackTrace? st]) {
+    if (kDebugMode) {
+      debugPrint('❌ [ModerationService][$tag] $message');
+      if (error != null) debugPrint('   → error: $error');
+      if (st != null) debugPrint('   → stack: $st');
+    }
+  }
+
+  // ─────────────────────────────────────────────────────────────────────────
+  // REPORTAR VIDEO
+  // ─────────────────────────────────────────────────────────────────────────
+
+  /// Reporta un video con un motivo específico.
+  ///
+  /// Devuelve `true` si el reporte se creó exitosamente.
+  /// Devuelve `false` si:
+  ///   - El usuario no está autenticado.
+  ///   - El usuario ya reportó ese video.
+  ///   - Ocurrió un error.
+  Future<bool> reportVideo({
+    required String videoId,
+    required ReportReason reason,
+    String? details,
+  }) async {
+    final userId = currentUserId;
+    if (userId == null) {
+      _logError('reportVideo', 'Usuario no autenticado.');
+      return false;
+    }
+
+    if (videoId.isEmpty) {
+      _logError('reportVideo', 'videoId vacío.');
+      return false;
+    }
+
+    try {
+      _log('reportVideo', 'Reportando video $videoId. Motivo: ${reason.code}');
+
+      // Verificar si ya reportó este video.
+      final existing = await pb.collection(_reportsCollection).getList(
+        filter: 'reporter = "$userId" && video = "$videoId"',
+        perPage: 1,
+      );
+
+      if (existing.items.isNotEmpty) {
+        _logWarning('reportVideo', 'Ya reportado previamente.');
+        return false;
+      }
+
+      // Crear el reporte.
+      await pb.collection(_reportsCollection).create(body: {
+        'reporter': userId,
+        'video': videoId,
+        'reason': reason.code,
+        'status': 'pending',
+        if (details != null && details.trim().isNotEmpty)
+          'details': details.trim(),
+      });
+
+      _logSuccess('reportVideo', 'Reporte enviado.');
+      return true;
+    } on ClientException catch (e) {
+      _logError('reportVideo', 'ClientException: $e', e);
+      return false;
+    } catch (e, st) {
+      _logError('reportVideo', 'Error inesperado.', e, st);
+      return false;
+    }
+  }
+
+  // ─────────────────────────────────────────────────────────────────────────
+  // BLOQUEAR USUARIO
+  // ─────────────────────────────────────────────────────────────────────────
+
+  /// Bloquea a un usuario.
+  ///
+  /// Devuelve `true` si el bloqueo se creó exitosamente.
+  /// Devuelve `false` si:
+  ///   - El usuario no está autenticado.
+  ///   - Se intenta bloquear a sí mismo.
+  ///   - Ocurrió un error.
+  Future<bool> blockUser(String blockedUserId) async {
+    final userId = currentUserId;
+    if (userId == null) {
+      _logError('blockUser', 'Usuario no autenticado.');
+      return false;
+    }
+
+    if (userId == blockedUserId) {
+      _logError('blockUser', 'No puedes bloquearte a ti mismo.');
+      return false;
+    }
+
+    if (blockedUserId.isEmpty) {
+      _logError('blockUser', 'blockedUserId vacío.');
+      return false;
+    }
+
+    try {
+      _log('blockUser', 'Bloqueando usuario $blockedUserId');
+
+      // Verificar si ya está bloqueado.
+      final existing = await pb.collection(_blocksCollection).getList(
+        filter: 'blocker = "$userId" && blocked = "$blockedUserId"',
+        perPage: 1,
+      );
+
+      if (existing.items.isNotEmpty) {
+        _log('blockUser', 'Ya estaba bloqueado.');
+        return true;
+      }
+
+      await pb.collection(_blocksCollection).create(body: {
+        'blocker': userId,
+        'blocked': blockedUserId,
+      });
+
+      _logSuccess('blockUser', 'Usuario bloqueado.');
+      return true;
+    } on ClientException catch (e) {
+      _logError('blockUser', 'ClientException: $e', e);
+      return false;
+    } catch (e, st) {
+      _logError('blockUser', 'Error inesperado.', e, st);
+      return false;
+    }
+  }
+
+  /// Desbloquea a un usuario.
+  Future<bool> unblockUser(String blockedUserId) async {
+    final userId = currentUserId;
+    if (userId == null) return false;
+
+    try {
+      _log('unblockUser', 'Desbloqueando $blockedUserId');
+
+      final existing = await pb.collection(_blocksCollection).getList(
+        filter: 'blocker = "$userId" && blocked = "$blockedUserId"',
+        perPage: 1,
+      );
+
+      if (existing.items.isEmpty) {
+        _log('unblockUser', 'No estaba bloqueado.');
+        return true;
+      }
+
+      await pb.collection(_blocksCollection).delete(existing.items.first.id);
+      _logSuccess('unblockUser', 'Usuario desbloqueado.');
+      return true;
+    } catch (e, st) {
+      _logError('unblockUser', 'Error al desbloquear.', e, st);
+      return false;
+    }
+  }
+
+  // ─────────────────────────────────────────────────────────────────────────
+  // VERIFICAR BLOQUEOS
+  // ─────────────────────────────────────────────────────────────────────────
+
+  /// Verifica si el usuario actual tiene bloqueado a otro.
+  Future<bool> isUserBlocked(String otherUserId) async {
+    final userId = currentUserId;
+    if (userId == null) return false;
+
+    try {
+      final existing = await pb.collection(_blocksCollection).getList(
+        filter: 'blocker = "$userId" && blocked = "$otherUserId"',
+        perPage: 1,
+      );
+      return existing.items.isNotEmpty;
+    } catch (e) {
+      _logError('isUserBlocked', 'Error al verificar.', e);
+      return false;
+    }
+  }
+
+  /// Obtiene la lista de IDs de usuarios bloqueados por el usuario actual.
+  ///
+  /// Útil para filtrar el feed y ocultar sus videos/comentarios.
+  Future<List<String>> getBlockedUserIds() async {
+    final userId = currentUserId;
+    if (userId == null) return [];
+
+    try {
+      _log('getBlockedUserIds', 'Cargando usuarios bloqueados...');
+
+      final result = await pb.collection(_blocksCollection).getList(
+        filter: 'blocker = "$userId"',
+        perPage: 500, // Suficiente para la mayoría de casos
+      );
+
+      final ids = result.items
+          .map((record) => record.getStringValue('blocked'))
+          .where((id) => id.isNotEmpty)
+          .toList();
+
+      _logSuccess('getBlockedUserIds', 'Encontrados ${ids.length} bloqueados.');
+      return ids;
+    } catch (e, st) {
+      _logError('getBlockedUserIds', 'Error al obtener bloqueados.', e, st);
+      return [];
+    }
+  }
+}

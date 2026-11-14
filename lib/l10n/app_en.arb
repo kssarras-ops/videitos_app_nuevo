@@ -1,0 +1,56 @@
+{
+  "@@locale": "en",
+
+  "appTitle": "Videitos",
+
+  "loginTitle": "Log in",
+  "loginSubtitle": "Enter your credentials to continue",
+  "registerTitle": "Create an access credential",
+  "registerSubtitle": "Complete the form to create your account",
+
+  "email": "Email",
+  "password": "Password",
+  "passwordConfirm": "Confirm password",
+  "name": "Name",
+  "username": "Username",
+
+  "loginButton": "LOG IN",
+  "registerButton": "SIGN UP",
+
+  "forgotPassword": "Forgot password?",
+  "forgotPasswordFeature": "Password recovery coming soon",
+  "rememberMe": "Remember me",
+  "noAccount": "Don't have an account? ",
+  "hasAccount": "Already have an account? ",
+  "registerHere": "Sign up here",
+  "loginHere": "Log in",
+
+  "termsAndConditions": "Terms and conditions",
+  "privacyPolicy": "Privacy policy",
+
+  "loading": "Loading...",
+  "error": "Error",
+  "retry": "Retry",
+  "welcome": "Welcome",
+  "cancel": "Cancel",
+  "accept": "Accept",
+
+  "emailRequired": "Enter your email",
+  "invalidEmail": "Invalid email format",
+  "passwordRequired": "Enter your password",
+  "passwordMinLength": "Must be at least 6 characters",
+  "confirmPasswordRequired": "Confirm your password",
+  "passwordsMismatch": "Passwords don't match",
+
+  "invalidCredentials": "Invalid credentials. Check your email and password.",
+  "emailAlreadyExists": "This email is already registered.",
+  "userNotFound": "User not found. Check your email.",
+  "networkError": "Connection error. Check your internet.",
+  "serverError": "Server error. Try again later.",
+
+  "loginSuccess": "Welcome back!",
+  "registerSuccess": "Account created! Logging in...",
+
+  "showPassword": "Show password",
+  "hidePassword": "Hide password"
+}

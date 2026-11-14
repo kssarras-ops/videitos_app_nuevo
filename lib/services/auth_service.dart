@@ -1,69 +1,80 @@
+import 'dart:async';
+import 'package:flutter/foundation.dart';
 import 'package:pocketbase/pocketbase.dart';
+import 'api_service.dart';
 
+/// 🛡️ Servicio de Autenticación mejorado para VideitosApp.
 class AuthService {
-  final PocketBase pb;
+  static final AuthService instance = AuthService._internal();
+  AuthService._internal();
 
-  AuthService(this.pb);
+  PocketBase get pb => ApiService.instance.pb;
 
-  /// Registra un nuevo usuario
-  /// Captura errores específicos de PocketBase para dar feedback real
-  Future<RecordModel> register(String email, String password) async {
+  /// Retorna si el token existe y es válido.
+  bool get isLoggedIn => pb.authStore.isValid;
+
+  String? get currentUserId => pb.authStore.record?.id;
+  RecordModel? get currentUser => pb.authStore.record;
+
+  /// 📝 Registro con control de errores mejorado.
+  Future<void> register(String email, String password) async {
     try {
-      return await pb.collection('users').create(body: {
+      await pb.collection('users').create(body: {
         'email': email,
         'password': password,
         'passwordConfirm': password,
         'emailVisibility': true,
-      });
+      }).timeout(const Duration(
+          seconds: 15)); // Aumentado ligeramente para evitar falsos timeouts
+
+      await login(email, password);
     } on ClientException catch (e) {
-      // Extrae el mensaje de error detallado del servidor
-      final errorData = e.response['data'];
-      String detail = '';
-      if (errorData != null && errorData.isNotEmpty) {
-        detail = ": ${errorData.toString()}";
-      }
-      throw Exception(
-          'Registro fallido${detail.isNotEmpty ? detail : ": " + e.response['message']}');
+      debugPrint('❌ Error de PocketBase en registro: ${e.response}');
+      rethrow;
     } catch (e) {
-      throw Exception('Error inesperado: $e');
+      debugPrint('💥 Error inesperado en registro: $e');
+      rethrow;
     }
   }
 
-  /// Inicia sesión y devuelve el resultado de autenticación
+  /// 🔑 Login optimizado.
   Future<RecordAuth> login(String email, String password) async {
     try {
-      return await pb.collection('users').authWithPassword(email, password);
-    } on ClientException catch (e) {
-      throw Exception('Login fallido: ${e.response['message']}');
+      return await pb
+          .collection('users')
+          .authWithPassword(email, password)
+          .timeout(const Duration(seconds: 15));
     } catch (e) {
-      throw Exception('Error inesperado: $e');
+      debugPrint('❌ Error de Login: $e');
+      // No llamamos a logout aquí automáticamente, dejamos que el UI maneje el error
+      rethrow;
     }
   }
 
-  /// Cierra la sesión actual borrando el AuthStore
+  /// 🧹 Cierre de sesión seguro.
   void logout() {
     pb.authStore.clear();
   }
 
-  /// Verifica si el token actual es válido
-  bool get isLoggedIn => pb.authStore.isValid;
+  /// 🔄 Refresca el token solo si es necesario.
+  Future<bool> refreshAuth() async {
+    // Si no hay token guardado, no hay nada que refrescar
+    if (!pb.authStore.isValid) return false;
 
-  /// Devuelve el ID del usuario actual
-  String? get currentUserId => pb.authStore.model?.id;
-
-  /// Devuelve el modelo completo del usuario (email, nombre, etc.)
-  RecordModel? get currentUser => pb.authStore.model is RecordModel
-      ? pb.authStore.model as RecordModel
-      : null;
-
-  /// Refresca la sesión (mantiene al usuario logueado por más tiempo)
-  Future<void> refreshAuth() async {
-    if (isLoggedIn) {
-      try {
-        await pb.collection('users').authRefresh();
-      } catch (_) {
-        logout(); // Si el refresh falla, cerramos sesión por seguridad
+    try {
+      await pb
+          .collection('users')
+          .authRefresh()
+          .timeout(const Duration(seconds: 10));
+      return true;
+    } catch (e) {
+      debugPrint('🔁 Error al refrescar token: $e');
+      // Solo limpiamos si el error indica que el token realmente ya no es aceptado por el server
+      if (e is ClientException &&
+          (e.statusCode == 401 || e.statusCode == 400)) {
+        logout();
       }
+      return false;
     }
   }
 }

@@ -1,19 +1,18 @@
 import 'package:flutter/material.dart';
 import '../services/pocketbase_service.dart';
-import '../models/video.dart';
 import '../widgets/video_player_widget.dart';
 
 class UserVideosScreen extends StatefulWidget {
-  final String userId;
-  const UserVideosScreen({super.key, required this.userId});
+  const UserVideosScreen({super.key});
 
   @override
   State<UserVideosScreen> createState() => _UserVideosScreenState();
 }
 
 class _UserVideosScreenState extends State<UserVideosScreen> {
-  List<Video> _videos = [];
-  bool _isLoading = true;
+  final PocketBaseService _pb = PocketBaseService();
+  List<dynamic> _records = [];
+  bool _loading = true;
 
   @override
   void initState() {
@@ -22,82 +21,117 @@ class _UserVideosScreenState extends State<UserVideosScreen> {
   }
 
   Future<void> _loadUserVideos() async {
-    final pb = PocketBaseService();
+    final userId = _pb.currentUserId;
+    if (userId == null) {
+      setState(() => _loading = false);
+      return;
+    }
     try {
-      final result = await pb.pb.collection('videitos').getList(
-            filter: 'creador = "${widget.userId}"',
+      final result = await _pb.pb.collection('videitos').getList(
+            filter: 'creador = "$userId"',
             sort: '-created',
           );
-      final videos = result.items
-          .map((record) => Video.fromRecord(record, pb.pb))
-          .toList();
       setState(() {
-        _videos = videos;
-        _isLoading = false;
+        _records = result.items;
+        _loading = false;
       });
     } catch (e) {
-      print('Error cargando videos del usuario: $e');
-      setState(() => _isLoading = false);
+      setState(() => _loading = false);
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error al cargar tus videos: $e')),
+        );
+      }
     }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Mis videos')),
-      body: _isLoading
-          ? const Center(child: CircularProgressIndicator())
-          : _videos.isEmpty
-              ? const Center(child: Text('No has subido videos aún'))
-              : GridView.builder(
-                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                    crossAxisCount: 2,
-                    childAspectRatio: 0.7,
+      backgroundColor: const Color(0xFF121212), // Fondo oscuro integrado
+      appBar: AppBar(
+        title: const Text('Mis Videos'),
+        backgroundColor: Colors.black,
+        foregroundColor: const Color(0xFF00D4FF),
+      ),
+      body: _loading
+          ? const Center(
+              child: CircularProgressIndicator(
+                valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF00D4FF)),
+              ),
+            )
+          : _records.isEmpty
+              ? const Center(
+                  child: Text(
+                    'Aún no has subido ningún video',
+                    style: TextStyle(color: Colors.grey),
                   ),
-                  itemCount: _videos.length,
+                )
+              : ListView.builder(
+                  itemCount: _records.length,
                   itemBuilder: (context, index) {
-                    final video = _videos[index];
-                    return GestureDetector(
-                      onTap: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (_) => VideoPlayerWidget(
-                              videoUrl: video.videoUrl,
-                              title: video.title,
-                              creatorId: video.creatorId,
-                              videoId: video.id,
+                    final record = _records[index];
+                    final videoFile = record.data['archivo_video'];
+
+                    // Resuelve quirúrgicamente la URL usando el búnker de PocketBase
+                    final videoUrl = videoFile != null
+                        ? _pb.pb.files.getUrl(record, videoFile).toString()
+                        : '';
+
+                    // Inyectamos dinámicamente la URL en los datos para que el VideoPlayerWidget la consuma de inmediato
+                    record.data['url'] = videoUrl;
+
+                    return Card(
+                      color: const Color(0xFF1E1E1E),
+                      margin: const EdgeInsets.symmetric(
+                          horizontal: 12, vertical: 8),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Column(
+                        children: [
+                          ClipRRect(
+                            borderRadius: const BorderRadius.vertical(
+                                top: Radius.circular(12)),
+                            child: AspectRatio(
+                              aspectRatio: 16 / 9,
+                              child: videoUrl.isNotEmpty
+                                  ? VideoPlayerWidget(
+                                      videoData:
+                                          record, // Usa el nuevo mapeo dinámico
+                                    )
+                                  : const Center(
+                                      child: Icon(Icons.video_library,
+                                          size: 60, color: Colors.grey),
+                                    ),
                             ),
                           ),
-                        );
-                      },
-                      child: Card(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Expanded(
-                              child: Image.network(
-                                video.thumbnailUrl ?? video.videoUrl,
-                                fit: BoxFit.cover,
-                                errorBuilder: (_, __, ___) =>
-                                    Container(color: Colors.grey),
-                              ),
+                          ListTile(
+                            title: Text(
+                              record.data['titulo'] ?? 'Sin título',
+                              style: const TextStyle(
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.bold),
                             ),
-                            Padding(
-                              padding: const EdgeInsets.all(8.0),
-                              child: Text(
-                                video.title,
-                                maxLines: 2,
-                                overflow: TextOverflow.ellipsis,
-                                style: const TextStyle(fontSize: 12),
-                              ),
+                            subtitle: Text(
+                              'Subido el ${_formatDate(record.created ?? '')}',
+                              style: const TextStyle(color: Colors.grey),
                             ),
-                          ],
-                        ),
+                          ),
+                        ],
                       ),
                     );
                   },
                 ),
     );
+  }
+
+  String _formatDate(String dateStr) {
+    try {
+      final date = DateTime.parse(dateStr);
+      return '${date.day}/${date.month}/${date.year}';
+    } catch (_) {
+      return dateStr;
+    }
   }
 }

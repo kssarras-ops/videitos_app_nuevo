@@ -1,35 +1,162 @@
 name: videitos_app
-description: App de videos cortos - Videitos
+description: "App de videos cortos - Videitos"
 publish_to: 'none'
-version: 4.0.5+1002
 
+# ═══════════════════════════════════════════════════════════════════════════
+# CONTROL DE VERSIONES (SemVer + VersionCode de Android)
+# ═══════════════════════════════════════════════════════════════════════════
+# [LOG] Actualización Mayor (Major Release): 7.0.0
+# Motivo: Integración de OAuth (Google/Apple), borrado en cascada y 
+#         requisitos estrictos de Google Play/App Store.
+# El versionCode (1000000) supera el límite anterior (999999) para asegurar 
+# que Google Play acepte esta nueva compilación sin errores de "versión ya usada".
+version: 7.0.0+1000000
+
+# ═══════════════════════════════════════════════════════════════════════════
+# RESTRICCIÓN DEL SDK DE DART
+# ═══════════════════════════════════════════════════════════════════════════
+# [LOG] Usamos el caret syntax (^) para permitir parches de seguridad y 
+# versiones menores compatibles, pero bloqueando saltos a Dart 4.0 (que rompería la API).
 environment:
-  sdk: ">=3.0.0 <4.0.0"
+  sdk: ^3.5.0
+
+# ═══════════════════════════════════════════════════════════════════════════
+# DEPENDENCIAS PRINCIPALES
+# ═══════════════════════════════════════════════════════════════════════════
 
 dependencies:
   flutter:
     sdk: flutter
+  flutter_localizations:
+    sdk: flutter
+  intl: ^0.20.2
 
-  pocketbase: ^0.23.2
-  http: ^1.2.0
-  shared_preferences: ^2.2.0
-  provider: ^6.1.0
-  video_player: ^2.8.0
-  chewie: ^1.7.0
-  image_picker: ^1.0.5
-  file_picker: ^8.0.0+1
-  cupertino_icons: ^1.0.6
-  cached_network_image: ^3.3.0
+  # --- UI Y DISEÑO ---
+  cupertino_icons: ^1.0.9
+  flutter_svg: ^2.0.17
+  shimmer: ^3.0.0
+  flutter_staggered_animations: ^1.1.1
 
-  # Versión estable que no causa problemas con AGP 8+
-  package_info_plus: ^7.0.0
+  # --- BACKEND Y RED ---
+  pocketbase: ^0.24.0+1
+  http: ^1.4.0
+  http_parser: ^4.1.2
+  shared_preferences: ^2.5.3
+  path_provider: ^2.1.5
+
+  # --- GESTION DE ESTADO ---
+  provider: ^6.1.4
+
+  # --- AUTENTICACIÓN Y ENLACES (OAuth) ---
+  # [LOG] Paquete oficial para abrir pestañas seguras (Custom Tabs en Android, 
+  # Safari en iOS). Necesario para el flujo OAuth2 de Google y Apple.
+  flutter_custom_tabs: ^2.2.0
+  # [LOG] Mantenemos url_launcher como fallback y para la página de eliminación de cuenta.
+  url_launcher: ^6.3.2
+
+  # --- REPRODUCCION DE VIDEO ---
+  video_player: ^2.13.0
+  chewie: ^1.13.1
+
+  # --- SELECCION DE ARCHIVOS (Conforme a Políticas de Google Play) ---
+  # [LOG] Se usa image_picker (Photo Picker nativo) para evitar rechazos por 
+  # permisos excesivos de almacenamiento en Android 13+.
+  image_picker: ^1.2.3
+
+  # --- CAPTURA Y COMPRESION DE VIDEO ---
+  camera: ^0.12.0+3
+  video_compress: ^3.1.4
+
+  # --- UTILIDADES ---
+  mime: ^2.0.0
+  path: ^1.9.1
+  crypto: ^3.0.6
+  uuid: ^4.5.1
+
+  # --- COMPARTIR ---
+  share_plus: ^10.1.4
+
+  # --- CACHE Y REDES ---
+  flutter_cache_manager: ^3.4.1
+  cached_network_image: ^3.4.1
+
+  # --- VISIBILIDAD Y REPRODUCCION AUTOMATICA ---
+  visibility_detector: ^0.4.0+2
+
+  # --- INFORMACION DE LA APP ---
+  package_info_plus: ^8.3.1
+
+  # --- ALMACENAMIENTO SEGURO ---
+  # [LOG] Para guardar tokens de sesión de forma encriptada (AES en Android).
+  flutter_secure_storage: ^9.2.4
+
+  # --- MONETIZACIÓN (AdMob) ---
+  # [LOG] Versión 9.x: Requerida para las políticas modernas de UMP y 
+  # compatibilidad con Java 17 / Kotlin 2.4.0.
+  google_mobile_ads: ^9.2.0
+
+  # --- WEBVIEW (para EULA y políticas) ---
+  webview_flutter: ^4.10.0
+
+  # --- FIREBASE (Analytics, Core) ---
+  # [LOG] Alineados con el BoM de FlutterFire. Necesarios para la analítica 
+  # silenciosa y el Consent Mode (UMP).
+  firebase_core: ^5.1.0
+  firebase_analytics: ^13.0.1
+
+# ═══════════════════════════════════════════════════════════════════════════
+# DEPENDENCIAS DE DESARROLLO
+# ═══════════════════════════════════════════════════════════════════════════
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
-  flutter_lints: ^3.0.0
+  flutter_lints: ^6.0.0
+  build_runner: ^2.5.0
+  json_serializable: ^6.9.5
+  flutter_launcher_icons: ^0.14.4
+  flutter_native_splash: ^2.4.7
+  integration_test:
+    sdk: flutter
+  flutter_driver:
+    sdk: flutter
+  mockito: ^5.4.5
+
+# ═══════════════════════════════════════════════════════════════════════════
+# CONFIGURACION DE FLUTTER
+# ═══════════════════════════════════════════════════════════════════════════
 
 flutter:
+  generate: true
   uses-material-design: true
 
+  # --- ASSETS ---
+  assets:
+    - assets/images/
+    - assets/fonts/
 
+# ═══════════════════════════════════════════════════════════════════════════
+# ICONOS DE LA APP
+# ═══════════════════════════════════════════════════════════════════════════
+
+flutter_launcher_icons:
+  android: true
+  ios: true
+  image_path: "assets/images/app_logo.png"
+  remove_alpha_ios: true
+  adaptive_icon_background: "#1A1A2E"
+  adaptive_icon_foreground: "assets/images/app_logo_foreground.png"
+
+# ═══════════════════════════════════════════════════════════════════════════
+# PANTALLA DE CARGA (SPLASH SCREEN)
+# ═══════════════════════════════════════════════════════════════════════════
+
+flutter_native_splash:
+  color: "#1A1A2E"
+  image: assets/images/app_logo.png
+  android: true
+  ios: true
+  android_12:
+    color: "#1A1A2E"
+    image: assets/images/app_logo.png
+    icon_background_color: "#1A1A2E"

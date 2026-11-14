@@ -1,70 +1,122 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
-<dict>
-	<key>CADisableMinimumFrameDurationOnPhone</key>
-	<true/>
-	<key>CFBundleDevelopmentRegion</key>
-	<string>$(DEVELOPMENT_LANGUAGE)</string>
-	<key>CFBundleDisplayName</key>
-	<string>Videitos App Nuevo</string>
-	<key>CFBundleExecutable</key>
-	<string>$(EXECUTABLE_NAME)</string>
-	<key>CFBundleIdentifier</key>
-	<string>$(PRODUCT_BUNDLE_IDENTIFIER)</string>
-	<key>CFBundleInfoDictionaryVersion</key>
-	<string>6.0</string>
-	<key>CFBundleName</key>
-	<string>videitos_app_nuevo</string>
-	<key>CFBundlePackageType</key>
-	<string>APPL</string>
-	<key>CFBundleShortVersionString</key>
-	<string>$(FLUTTER_BUILD_NAME)</string>
-	<key>CFBundleSignature</key>
-	<string>????</string>
-	<key>CFBundleVersion</key>
-	<string>$(FLUTTER_BUILD_NUMBER)</string>
-	<key>LSRequiresIPhoneOS</key>
-	<true/>
-	<key>UIApplicationSceneManifest</key>
 	<dict>
-		<key>UIApplicationSupportsMultipleScenes</key>
+		<!-- ═══════════════════════════════════════════════════════════════════
+		     1. INFORMACIÓN BÁSICA DE LA APP
+		     ═══════════════════════════════════════════════════════════════════ -->
+		<!-- [LOG] Nombres visibles en el sistema y en la App Store -->
+		<key>CFBundleDisplayName</key>
+		<string>Videitos</string>
+		<key>CFBundleName</key>
+		<string>videitos_app</string>
+		
+		<key>CFBundleDevelopmentRegion</key>
+		<string>$(DEVELOPMENT_LANGUAGE)</string>
+		<key>CFBundleExecutable</key>
+		<string>$(EXECUTABLE_NAME)</string>
+		<key>CFBundleIdentifier</key>
+		<string>$(PRODUCT_BUNDLE_IDENTIFIER)</string>
+		<key>CFBundleInfoDictionaryVersion</key>
+		<string>6.0</string>
+		<key>CFBundlePackageType</key>
+		<string>APPL</string>
+		<key>CFBundleShortVersionString</key>
+		<string>$(FLUTTER_BUILD_NAME)</string>
+		<key>CFBundleSignature</key>
+		<string>????</string>
+		<key>CFBundleVersion</key>
+		<string>$(FLUTTER_BUILD_NUMBER)</string>
+
+		<!-- ═══════════════════════════════════════════════════════════════════
+		     2. DEEP LINK PARA OAUTH2 (Google y Apple Login)
+		     ═══════════════════════════════════════════════════════════════════ -->
+		<!-- [LOG][CRÍTICO] Permite que el navegador SafariView capture la 
+		     redirección de Google y la devuelva a tu aplicación. El esquema
+		     DEBE COINCIDIR con el package name (cl.videitos.app). -->
+		<key>CFBundleURLTypes</key>
+		<array>
+			<dict>
+				<key>CFBundleTypeRole</key>
+				<string>Editor</string>
+				<key>CFBundleURLSchemes</key>
+				<array>
+					<string>cl.videitos.app</string>
+				</array>
+			</dict>
+		</array>
+
+		<!-- ═══════════════════════════════════════════════════════════════════
+		     3. PERMISOS DE PRIVACIDAD (Requisito estricto de Apple)
+		     ═══════════════════════════════════════════════════════════════════ -->
+		<!-- [LOG] Explicaciones que verá el usuario al solicitar acceso.
+		     Si estos textos faltan, la app crashea al usar la cámara o galería. -->
+		<key>NSCameraUsageDescription</key>
+		<string>Videitos necesita acceso a tu cámara para que puedas grabar videos y compartirlos en la aplicación.</string>
+		
+		<key>NSMicrophoneUsageDescription</key>
+		<string>Videitos necesita acceso a tu micrófono para grabar audio en los videos que subas.</string>
+		
+		<key>NSPhotoLibraryUsageDescription</key>
+		<string>Videitos necesita acceso a tu galería para que puedas seleccionar y subir videos existentes.</string>
+
+		<key>NSPhotoLibraryAddUsageDescription</key>
+		<string>Videitos necesita permiso para guardar videos editados en tu galería.</string>
+
+		<!-- ═══════════════════════════════════════════════════════════════════
+		     4. CONFIGURACIÓN DE INTERFAZ (UI)
+		     ═══════════════════════════════════════════════════════════════════ -->
+		<!-- [LOG] Bloqueo de orientación a solo vertical (Portrait) para 
+		     coincidir con la configuración de SystemChrome en main.dart. -->
+		<key>UISupportedInterfaceOrientations</key>
+		<array>
+			<string>UIInterfaceOrientationPortrait</string>
+		</array>
+		<key>UISupportedInterfaceOrientations~ipad</key>
+		<array>
+			<string>UIInterfaceOrientationPortrait</string>
+			<string>UIInterfaceOrientationPortraitUpsideDown</string>
+		</array>
+
+		<!-- [LOG] Configuración de barra de estado (oculta el reloj/batería si es necesario) -->
+		<key>UIStatusBarHidden</key>
 		<false/>
-		<key>UISceneConfigurations</key>
+		<key>UIViewControllerBasedStatusBarAppearance</key>
+		<false/>
+
+		<!-- ═══════════════════════════════════════════════════════════════════
+		     5. CONFIGURACIÓN DEL FLUTTER ENGINE Y ARRANQUE
+		     ═══════════════════════════════════════════════════════════════════ -->
+		<key>CADisableMinimumFrameDurationOnPhone</key>
+		<true/>
+		<key>UIApplicationSceneManifest</key>
 		<dict>
-			<key>UIWindowSceneSessionRoleApplication</key>
-			<array>
-				<dict>
-					<key>UISceneClassName</key>
-					<string>UIWindowScene</string>
-					<key>UISceneConfigurationName</key>
-					<string>flutter</string>
-					<key>UISceneDelegateClassName</key>
-					<string>$(PRODUCT_MODULE_NAME).SceneDelegate</string>
-					<key>UISceneStoryboardFile</key>
-					<string>Main</string>
-				</dict>
-			</array>
+			<key>UIApplicationSupportsMultipleScenes</key>
+			<false/>
+			<key>UISceneConfigurations</key>
+			<dict>
+				<key>UIWindowSceneSessionRoleApplication</key>
+				<array>
+					<dict>
+						<key>UISceneClassName</key>
+						<string>UIWindowScene</string>
+						<key>UISceneConfigurationName</key>
+						<string>flutter</string>
+						<key>UISceneDelegateClassName</key>
+						<string>$(PRODUCT_MODULE_NAME).SceneDelegate</string>
+						<key>UISceneStoryboardFile</key>
+						<string>Main</string>
+					</dict>
+				</array>
+			</dict>
 		</dict>
+		<key>UIApplicationSupportsIndirectInputEvents</key>
+		<true/>
+		<key>UILaunchStoryboardName</key>
+		<string>LaunchScreen</string>
+		<key>UIMainStoryboardFile</key>
+		<string>Main</string>
+		<key>LSRequiresIPhoneOS</key>
+		<true/>
 	</dict>
-	<key>UIApplicationSupportsIndirectInputEvents</key>
-	<true/>
-	<key>UILaunchStoryboardName</key>
-	<string>LaunchScreen</string>
-	<key>UIMainStoryboardFile</key>
-	<string>Main</string>
-	<key>UISupportedInterfaceOrientations</key>
-	<array>
-		<string>UIInterfaceOrientationPortrait</string>
-		<string>UIInterfaceOrientationLandscapeLeft</string>
-		<string>UIInterfaceOrientationLandscapeRight</string>
-	</array>
-	<key>UISupportedInterfaceOrientations~ipad</key>
-	<array>
-		<string>UIInterfaceOrientationPortrait</string>
-		<string>UIInterfaceOrientationPortraitUpsideDown</string>
-		<string>UIInterfaceOrientationLandscapeLeft</string>
-		<string>UIInterfaceOrientationLandscapeRight</string>
-	</array>
-</dict>
 </plist>

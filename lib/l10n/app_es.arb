@@ -1,0 +1,56 @@
+{
+  "@@locale": "es",
+
+  "appTitle": "Videitos",
+
+  "loginTitle": "Ingresa al búnker",
+  "loginSubtitle": "Ingresa tus credenciales para continuar",
+  "registerTitle": "Crea una credencial de acceso",
+  "registerSubtitle": "Completa los datos para crear tu cuenta",
+
+  "email": "Email",
+  "password": "Contraseña",
+  "passwordConfirm": "Confirmar contraseña",
+  "name": "Nombre",
+  "username": "Nombre de usuario",
+
+  "loginButton": "INICIAR SESIÓN",
+  "registerButton": "CREAR CUENTA",
+
+  "forgotPassword": "¿Olvidaste tu contraseña?",
+  "forgotPasswordFeature": "Función de recuperación próximamente",
+  "rememberMe": "Recordarme",
+  "noAccount": "¿No tienes cuenta? ",
+  "hasAccount": "¿Ya tienes cuenta? ",
+  "registerHere": "Regístrate aquí",
+  "loginHere": "Conéctate",
+
+  "termsAndConditions": "Términos y condiciones",
+  "privacyPolicy": "Política de privacidad",
+
+  "loading": "Cargando...",
+  "error": "Error",
+  "retry": "Reintentar",
+  "welcome": "Bienvenido",
+  "cancel": "Cancelar",
+  "accept": "Aceptar",
+
+  "emailRequired": "Ingresa tu email",
+  "invalidEmail": "Formato de email inválido",
+  "passwordRequired": "Ingresa tu contraseña",
+  "passwordMinLength": "Debe tener al menos 6 caracteres",
+  "confirmPasswordRequired": "Confirma tu contraseña",
+  "passwordsMismatch": "Las contraseñas no coinciden",
+
+  "invalidCredentials": "Credenciales inválidas. Verifica tu email y contraseña.",
+  "emailAlreadyExists": "Este email ya está registrado.",
+  "userNotFound": "Usuario no encontrado. Verifica tu email.",
+  "networkError": "Error de conexión. Verifica tu internet.",
+  "serverError": "Error del servidor. Intenta más tarde.",
+
+  "loginSuccess": "¡Bienvenido de vuelta!",
+  "registerSuccess": "¡Cuenta creada! Iniciando sesión...",
+
+  "showPassword": "Mostrar contraseña",
+  "hidePassword": "Ocultar contraseña"
+}

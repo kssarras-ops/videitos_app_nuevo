@@ -1,45 +1,90 @@
-# Miscellaneous
-*.class
-*.log
-*.pyc
-*.swp
+# ═══════════════════════════════════════════════════════════════════════════
+# ARCHIVOS DEL SISTEMA OPERATIVO Y BASURA
+# ═══════════════════════════════════════════════════════════════════════════
+# [LOG] Evita subir archivos temporales del sistema macOS y Windows
 .DS_Store
-.atom/
-.build/
-.buildlog/
-.history
-.svn/
-.swiftpm/
-migrate_working_dir/
+Thumbs.db
+*.log
+*.swp
+*.class
 
-# IntelliJ related
+# ═══════════════════════════════════════════════════════════════════════════
+# ENTORNOS DE DESARROLLO (IDE)
+# ═══════════════════════════════════════════════════════════════════════════
+# [LOG] Configuraciones locales de editores que no deben compartirse
+.idea/
 *.iml
 *.ipr
 *.iws
-.idea/
+.atom/
+.build/
+.history/
+.svn/
+.swiftpm/
+.vscode/
 
-# The .vscode folder contains launch configuration and tasks you configure in
-# VS Code which you may wish to be included in version control, so this line
-# is commented out by default.
-#.vscode/
-
-# Flutter/Dart/Pub related
-**/doc/api/
-**/ios/Flutter/.last_build_id
+# ═══════════════════════════════════════════════════════════════════════════
+# FLUTTER Y DART
+# ═══════════════════════════════════════════════════════════════════════════
+# [LOG] Archivos generados automáticamente por Flutter y Pub
 .dart_tool/
-.flutter-plugins-dependencies
+.packages
 .pub-cache/
 .pub/
-/build/
+build/
 /coverage/
+flutter/
+.flutter-plugins
+.flutter-plugins-dependencies
+**/doc/api/
+**/ios/Flutter/.last_build_id
 
-# Symbolication related
+# [LOG] Archivos de ofuscación y simbolización
 app.*.symbols
-
-# Obfuscation related
 app.*.map.json
 
-# Android Studio will place build artifacts here
-/android/app/debug
-/android/app/profile
-/android/app/release
+# ═══════════════════════════════════════════════════════════════════════════
+# ANDROID
+# ═══════════════════════════════════════════════════════════════════════════
+# [LOG] Carpetas de compilación y configuraciones locales de Android Studio
+android/.gradle/
+android/captures/
+android/app/build/
+android/app/debug/
+android/app/profile/
+android/app/release/
+local.properties
+
+# [LOG] CRÍTICO: Llaves de firma (Keystore). NUNCA deben subirse a Git.
+*.jks
+*.keystore
+key.properties
+android/key.properties
+
+# ═══════════════════════════════════════════════════════════════════════════
+# iOS (MAC / COCOAPODS)
+# ═══════════════════════════════════════════════════════════════════════════
+# [LOG] Dependencias nativas de iOS. Codemagic las generará en la nube.
+ios/Pods/
+ios/.symlinks/
+ios/Flutter/Flutter.framework
+ios/Flutter/Flutter.podspec
+ios/Flutter/App.framework
+ios/Runner.xcworkspace/xcuserdata/
+
+# ═══════════════════════════════════════════════════════════════════════════
+# FIREBASE Y SECRETOS (PROTECCIÓN DE CREDENCIALES)
+# ═══════════════════════════════════════════════════════════════════════════
+# [LOG] Archivos de configuración de Firebase. 
+# ⚠️ ADVERTENCIA: Si los ignoras aquí, debes subirlos manualmente a Codemagic 
+# en "Environment Variables" como archivos base64, o el build fallará.
+android/app/google-services.json
+ios/Runner/GoogleService-Info.plist
+firebase.json
+
+# ═══════════════════════════════════════════════════════════════════════════
+# ARCHIVOS DE PRUEBA Y BASURA LOCAL
+# ═══════════════════════════════════════════════════════════════════════════
+# [LOG] Archivos específicos que vi en tu terminal y no deben ir a producción
+test_video.mp4
+login_screen.dart # [LOG] Este archivo está en la raíz por error, debe moverse a lib/screens/

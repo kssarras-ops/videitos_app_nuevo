@@ -1,103 +1,67 @@
 import 'package:flutter/material.dart';
-import '../services/api_service.dart';
+import '../services/pocketbase_service.dart';
 
-class ReportScreen extends StatelessWidget {
-  final String videoId;
-  const ReportScreen({super.key, required this.videoId});
+class ReportScreen extends StatefulWidget {
+  const ReportScreen({super.key});
+
+  @override
+  State<ReportScreen> createState() => _ReportScreenState();
+}
+
+class _ReportScreenState extends State<ReportScreen> {
+  final TextEditingController _controller = TextEditingController();
+  final PocketBaseService _pb = PocketBaseService();
+  bool _sending = false;
+
+  Future<void> _sendReport() async {
+    final text = _controller.text.trim();
+    if (text.isEmpty) return;
+    setState(() => _sending = true);
+    try {
+      await _pb.pb.collection('reports').create(body: {
+        'user': _pb.currentUserId,
+        'description': text,
+      });
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Reporte enviado con éxito')),
+        );
+        Navigator.pop(context);
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error al enviar reporte: $e')),
+      );
+    } finally {
+      if (mounted) setState(() => _sending = false);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
-    final TextEditingController reasonController = TextEditingController();
-
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Reportar video'),
-      ),
+      appBar: AppBar(title: const Text('Reportar un problema')),
       body: Padding(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.all(20),
         child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            const Text(
-              '¿Por qué reportas este video?',
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 16),
-            Card(
-              child: Column(
-                children: [
-                  _buildReasonTile(context, 'Pornografía', reasonController),
-                  _buildReasonTile(context, 'Violencia', reasonController),
-                  _buildReasonTile(
-                      context, 'Contenido ofensivo', reasonController),
-                  _buildReasonTile(context, 'Spam', reasonController),
-                  _buildReasonTile(context, 'Otro', reasonController),
-                ],
-              ),
-            ),
-            const SizedBox(height: 16),
             TextField(
-              controller: reasonController,
+              controller: _controller,
+              maxLines: 5,
               decoration: const InputDecoration(
-                labelText: 'Especifica el motivo (opcional)',
+                hintText: 'Describe el problema o sugerencia...',
                 border: OutlineInputBorder(),
               ),
-              maxLines: 3,
             ),
-            const SizedBox(height: 16),
-            ElevatedButton(
-              onPressed: () async {
-                if (reasonController.text.trim().isEmpty) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                        content: Text('Por favor ingresa un motivo')),
-                  );
-                  return;
-                }
-
-                try {
-                  await ApiService.reportVideo(
-                      videoId, reasonController.text.trim());
-                  if (context.mounted) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                          content:
-                              Text('Reporte enviado. Gracias por tu ayuda.')),
-                    );
-                    Navigator.pop(context);
-                  }
-                } catch (e) {
-                  if (context.mounted) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                          content: Text('Error al enviar reporte: $e'),
-                          backgroundColor: Colors.red),
-                    );
-                  }
-                }
-              },
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.red,
-                foregroundColor: Colors.white,
-                minimumSize: const Size.fromHeight(50),
-              ),
-              child: const Text('Enviar reporte'),
+            const SizedBox(height: 20),
+            ElevatedButton.icon(
+              onPressed: _sending ? null : _sendReport,
+              icon: const Icon(Icons.send),
+              label: const Text('Enviar reporte'),
             ),
           ],
         ),
       ),
-    );
-  }
-
-  Widget _buildReasonTile(
-      BuildContext context, String reason, TextEditingController controller) {
-    return ListTile(
-      title: Text(reason),
-      leading: const Icon(Icons.flag),
-      onTap: () {
-        controller.text = reason;
-        Navigator.pop(context);
-      },
     );
   }
 }
