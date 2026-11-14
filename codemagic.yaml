@@ -1,4 +1,12 @@
+# ═══════════════════════════════════════════════════════════════════════════
+# CONFIGURACIÓN DE CODEMAGIC PARA VIDEITOS APP
+# Este archivo define los flujos de trabajo para compilar Android e iOS.
+# ═══════════════════════════════════════════════════════════════════════════
+
 workflows:
+  # ─────────────────────────────────────────────────────────────────────────
+  # 1. ANDROID RELEASE WORKFLOW
+  # ─────────────────────────────────────────────────────────────────────────
   android-release-workflow:
     name: Android Release Workflow
     max_build_duration: 90
@@ -8,19 +16,27 @@ workflows:
         EMAIL_RECIPIENT: "kssarras@gmail.com"
       android_signing:
         - videitos_keystore
+
     scripts:
+      # [LOG] Asegura que la nueva DSL de Android Gradle Plugin no rompa la compilación.
       - name: Ensure AGP compatibility
         script: |
           if ! grep -q "android.newDsl=false" android/gradle.properties; then
             echo "android.newDsl=false" >> android/gradle.properties
           fi
+
+      # [LOG] Limpia la caché de Gradle para evitar artefactos corruptos.
       - name: Clean Gradle cache
         script: |
           cd android
           ./gradlew clean
           cd ..
+
+      # [LOG] Descarga las dependencias de Dart/Flutter.
       - name: Get Flutter packages
         script: flutter packages pub get
+
+      # [LOG] Parche para el namespace del plugin package_info_plus (Requerido en AGP 8+).
       - name: Patch package_info_plus namespace
         script: |
           PLUGIN_DIR=$(find "$HOME/.pub-cache/hosted" -type d -name "package_info_plus-*" | head -n 1)
@@ -39,15 +55,41 @@ workflows:
           else
             echo "package_info_plus plugin directory not found."
           fi
+
+      # [LOG] Compila el App Bundle de Producción.
       - name: Build AAB with Flutter
         script: |
           flutter build appbundle --release
+
     artifacts:
+      # [LOG] Guarda el archivo .aab generado para su descarga o despliegue.
       - build/**/outputs/**/*.aab
+
     publishing:
+      # [LOG] Envía un correo con el resultado de la compilación.
       email:
         recipients:
           - kssarras@gmail.com
         notify:
           success: true
           failure: true
+
+  # ─────────────────────────────────────────────────────────────────────────
+  # 2. IOS SETUP WORKFLOW (ACCESO VNC Y XCODE)
+  # ─────────────────────────────────────────────────────────────────────────
+  ios-setup-workflow:
+    name: iOS Setup (VNC Access)
+    instance_type: mac_mini_m2 # [LOG] Fuerza a usar una Mac virtual
+    max_build_duration: 60
+    environment:
+      flutter: 3.24.3
+
+    scripts:
+      # [LOG] Mantiene la máquina encendida durante 1 hora (3600 segundos).
+      # Esto te da tiempo para conectarte por VNC y abrir Xcode.
+      - name: Keep machine alive for VNC
+        script: |
+          echo "✅ Máquina Mac encendida."
+          echo "Tienes 1 hora para conectarte por VNC y abrir Xcode."
+          echo "No cierres esta ventana hasta terminar."
+          sleep 3600
