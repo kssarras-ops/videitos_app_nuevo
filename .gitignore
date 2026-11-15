@@ -75,16 +75,19 @@ ios/Runner.xcworkspace/xcuserdata/
 # ═══════════════════════════════════════════════════════════════════════════
 # FIREBASE Y SECRETOS (PROTECCIÓN DE CREDENCIALES)
 # ═══════════════════════════════════════════════════════════════════════════
-# [LOG] Archivos de configuración de Firebase. 
-# ⚠️ ADVERTENCIA: Si los ignoras aquí, debes subirlos manualmente a Codemagic 
+# [LOG] Archivos de configuración de Firebase.
+# ⚠️ ADVERTENCIA: Si los ignoras aquí, debes subirlos manualmente a Codemagic
 # en "Environment Variables" como archivos base64, o el build fallará.
 android/app/google-services.json
 ios/Runner/GoogleService-Info.plist
 firebase.json
+
+# [LOG] ¡CRÍTICO! Este archivo contiene las API keys. NUNCA debe subirse a Git.
+lib/firebase_options.dart
 
 # ═══════════════════════════════════════════════════════════════════════════
 # ARCHIVOS DE PRUEBA Y BASURA LOCAL
 # ═══════════════════════════════════════════════════════════════════════════
 # [LOG] Archivos específicos que vi en tu terminal y no deben ir a producción
 test_video.mp4
-login_screen.dart # [LOG] Este archivo está en la raíz por error, debe moverse a lib/screens/
+login_screen.dart
